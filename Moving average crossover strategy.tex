@@ -1,0 +1,38 @@
+//@version=5
+strategy("Moving Average Crossover Strategy", overlay=true)
+
+// Define the lengths for the short-term and long-term moving averages
+shortLength = input(50, title="Short MA Length")
+longLength = input(200, title="Long MA Length")
+
+// Calculate the short-term and long-term moving averages
+shortMA = ta.sma(close, shortLength)
+longMA = ta.sma(close, longLength)
+
+// Define additional indicators (RSI and MACD)
+rsiLength = input(14, title="RSI Length")
+macdShortLength = input(12, title="MACD Short Length")
+macdLongLength = input(26, title="MACD Long Length")
+macdSignalSmoothing = input(9, title="MACD Signal Smoothing")
+
+rsi = ta.rsi(close, rsiLength)
+[macdLine, signalLine, _] = ta.macd(close, macdShortLength, macdLongLength, macdSignalSmoothing)
+
+// Generate buy and sell signals
+buySignal = ta.crossover(shortMA, longMA) and rsi < 30 and macdLine > signalLine
+sellSignal = ta.crossunder(shortMA, longMA) and rsi > 70 and macdLine < signalLine
+
+// Plot the moving averages on the chart
+plot(shortMA, color=color.blue, title="Short MA")
+plot(longMA, color=color.red, title="Long MA")
+
+// Plot additional indicators
+plot(rsi, color=color.green, title="RSI")
+plot(macdLine, color=color.orange, title="MACD Line")
+plot(signalLine, color=color.purple, title="MACD Signal Line")
+
+// Execute trades based on the signals
+if (buySignal)
+    strategy.entry("Buy", strategy.long)
+if (sellSignal)
+    strategy.entry("Sell", strategy.short)
